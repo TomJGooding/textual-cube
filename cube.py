@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import math
+
 from textual.app import App, ComposeResult
 from textual.color import Color
+from textual.reactive import var
 from textual_canvas import Canvas
 
-"""Code for rendering the cube adapted from
+"""Code for rendering and rotating the cube adapted from
 https://github.com/asciimoo/drawille
 """
 
@@ -26,6 +29,30 @@ class Point3D:
         x = self.x * factor + width / 2
         y = -self.y * factor + height / 2
         return Point3D(x, y, 1)
+
+    def rotate_x(self, angle: float) -> Point3D:
+        rad = angle * math.pi / 180
+        cosa = math.cos(rad)
+        sina = math.sin(rad)
+        y = self.y * cosa - self.z * sina
+        z = self.y * sina + self.z * cosa
+        return Point3D(self.x, y, z)
+
+    def rotate_y(self, angle: float) -> Point3D:
+        rad = angle * math.pi / 180
+        cosa = math.cos(rad)
+        sina = math.sin(rad)
+        z = self.z * cosa - self.x * sina
+        x = self.z * sina + self.x * cosa
+        return Point3D(x, self.y, z)
+
+    def rotate_z(self, angle: float) -> Point3D:
+        rad = angle * math.pi / 180
+        cosa = math.cos(rad)
+        sina = math.sin(rad)
+        x = self.x * cosa - self.y * sina
+        y = self.x * sina + self.y * cosa
+        return Point3D(x, y, self.z)
 
 
 VERTICES = [
@@ -76,14 +103,34 @@ class CubeApp(App):
     }
     """
 
+    angle_x = var(0)
+    angle_y = var(0)
+    angle_z = var(0)
+
     def compose(self) -> ComposeResult:
         yield Canvas(50, 50)
 
     def on_mount(self) -> None:
+        self.draw_cube()
+        self.set_interval(1 / 20, self.rotate_cube)
+
+    def rotate_cube(self) -> None:
+        self.angle_x += 2
+        self.angle_y += 3
+        self.angle_z += 5
+        self.clear_canvas()
+        self.draw_cube()
+
+    def draw_cube(self) -> None:
         vertices_2D: list[Point3D] = []
         for vertex in VERTICES:
+            point = (
+                vertex.rotate_x(self.angle_x)
+                .rotate_y(self.angle_y)
+                .rotate_z(self.angle_z)
+            )
             vertices_2D.append(
-                vertex.project_to_2D(
+                point.project_to_2D(
                     width=50,
                     height=50,
                     field_of_view=50,
@@ -121,6 +168,16 @@ class CubeApp(App):
                 y1=round(vertices_2D[face[0]].y),
                 color=Color(255, 255, 255),
             )
+
+    def clear_canvas(self) -> None:
+        # The textual-canvas library unfortunately doesn't have a Canvas.clear
+        # method, so we have to hand-roll our own
+        canvas = self.query_one(Canvas)
+        canvas._canvas = [
+            [Color(0, 0, 0) for _ in range(canvas._width)]
+            for _ in range(canvas._height)
+        ]
+        canvas.refresh()
 
 
 if __name__ == "__main__":
