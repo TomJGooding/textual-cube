@@ -6,9 +6,8 @@ from textual.app import App, ComposeResult
 from textual.color import Color
 from textual_canvas import Canvas
 
-"""Code for rendering and rotating the cube adapted from
-https://github.com/asciimoo/drawille
-"""
+# The code for rendering and rotating the cube is adapted from
+# https://github.com/asciimoo/drawille
 
 
 class Point3D:
