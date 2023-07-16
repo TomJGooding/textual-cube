@@ -1,2 +1,2 @@
 textual
-textual-canvas
+textual-canvas>=0.2.0

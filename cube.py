@@ -141,11 +141,11 @@ class CubeApp(App):
 
     def rotate_cube(self) -> None:
         self.cube.rotate()
-        self.clear_canvas()
         self.draw_cube()
 
     def draw_cube(self) -> None:
         canvas = self.query_one(Canvas)
+        canvas.clear()
         for face in self.cube.FACES:
             canvas.draw_line(
                 x0=round(self.cube.vertices_2D[face[0]].x),
@@ -175,16 +175,6 @@ class CubeApp(App):
                 y1=round(self.cube.vertices_2D[face[0]].y),
                 color=Color(255, 255, 255),
             )
-
-    def clear_canvas(self) -> None:
-        # The textual-canvas library unfortunately doesn't have a Canvas.clear
-        # method, so we have to hand-roll our own
-        canvas = self.query_one(Canvas)
-        canvas._canvas = [
-            [Color(0, 0, 0) for _ in range(canvas._width)]
-            for _ in range(canvas._height)
-        ]
-        canvas.refresh()
 
 
 if __name__ == "__main__":
